@@ -1,0 +1,21 @@
+EXPORTS
+	Supports
+	Load
+	Unload
+	AmxLoad
+	AmxUnload
+	OnPlayerConnect
+	OnPlayerDisconnect
+	OnVehicleSpawn
+	OnVehicleDeath
+	OnPlayerEnterVehicle
+	OnPlayerExitVehicle
+	OnVehicleMod
+	OnVehiclePaintjob
+	OnVehicleRespray
+	OnVehicleDamageStatusUpdate
+	OnUnoccupiedVehicleUpdate
+	OnVehicleStreamIn
+	OnVehicleStreamOut
+	OnTrailerUpdate
+	OnPlayerWeaponShot
