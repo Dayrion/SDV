@@ -1732,7 +1732,7 @@ void StreamVehicle(int dynamicid, VehicleData &vehicle)
 	int vid = sampgdk_CreateVehicle(vehicle.Model, vehicle.vx, vehicle.vy, vehicle.vz, vehicle.v_zangle, vehicle.Color1, vehicle.Color2, vehicle.Respawn_Delay, (vehicle.Addsiren == 1));
 	if (vid == 65535)
 	{
-		logprintf("0. A invalid vehicle tried to create and I prevented that %d | %d | VehCount: %d", dynamicid, vid, VehiclesCount);
+		//logprintf("0. A invalid vehicle tried to create and I prevented that %d | %d | VehCount: %d", dynamicid, vid, VehiclesCount);
 		if (VehiclesCount < 1999)
 			VehiclesCount = CountAllVehicles();
 		if (VehiclesCount >= 1999)
@@ -1746,7 +1746,7 @@ void StreamVehicle(int dynamicid, VehicleData &vehicle)
 			}
 			if (!RemoveFarestCar(vehicle.nearestplayer, true))
 			{
-				logprintf("1. A invalid vehicle tried to create and I prevented that %d | %d | VehCount: %d | %f", dynamicid, vid, VehiclesCount, vehicle.nearestplayer);
+				//logprintf("1. A invalid vehicle tried to create and I prevented that %d | %d | VehCount: %d | %f", dynamicid, vid, VehiclesCount, vehicle.nearestplayer);
 				return;
 			}
 			else
@@ -1754,7 +1754,7 @@ void StreamVehicle(int dynamicid, VehicleData &vehicle)
 				vid = sampgdk_CreateVehicle(vehicle.Model, vehicle.vx, vehicle.vy, vehicle.vz, vehicle.v_zangle, vehicle.Color1, vehicle.Color2, vehicle.Respawn_Delay, (vehicle.Addsiren == 1));
 				if (vid == 65535)
 				{
-					logprintf("2. A invalid vehicle tried to create and I prevented that %d | %d | VehCount: %d", dynamicid, vid, VehiclesCount);
+					//logprintf("2. A invalid vehicle tried to create and I prevented that %d | %d | VehCount: %d", dynamicid, vid, VehiclesCount);
 					return;
 				}
 			}
@@ -1764,7 +1764,7 @@ void StreamVehicle(int dynamicid, VehicleData &vehicle)
 			vid = sampgdk_CreateVehicle(vehicle.Model, vehicle.vx, vehicle.vy, vehicle.vz, vehicle.v_zangle, vehicle.Color1, vehicle.Color2, vehicle.Respawn_Delay, (vehicle.Addsiren == 1));
 			if (vid == 65535)
 			{
-				logprintf("3. A invalid vehicle tried to create and I prevented that %d | %d | VehCount: %d", dynamicid, vid, VehiclesCount);
+				//logprintf("3. A invalid vehicle tried to create and I prevented that %d | %d | VehCount: %d", dynamicid, vid, VehiclesCount);
 				return;
 			}
 		}
