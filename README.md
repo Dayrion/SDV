@@ -14,7 +14,7 @@ The latest binaries for Windows and Linux can be found on the [releases page](ht
 
 - Kuta999 for his c++ tutorials and YSF plugin. [ used ysf makefile to compile on linux ]
 - Streamer plugin, took this readme design from its readme file.
-- SA-MP Developers & Zeex for making samp and its SDK avaliable.
+- SA-MP Developers & Zeex for making samp and its SDK & GDK avaliable.
 - Jlalt for programming.
 
 ## Special thank to
