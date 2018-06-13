@@ -265,7 +265,7 @@ static cell AMX_NATIVE_CALL GetDVehicleDistanceFromPoint(AMX *amx, cell *params)
 			float d = sqrtf((powf(VehiclesData[vehicleid].vx - PX, 2) + powf(VehiclesData[vehicleid].vy - PY, 2) + powf(VehiclesData[vehicleid].vz - PZ, 2)));
 			return amx_ftoc(d);
 		}
-		return 1;
+		//return 1;
 	}
 	else
 	{
