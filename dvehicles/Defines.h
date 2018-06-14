@@ -39,6 +39,17 @@ struct VehiclePlayerParams
 		;
 };
 
+struct AttachedObject
+{
+	float 
+		offsetx,
+		offsety, 
+		offsetz, 
+		rx, 
+		ry, 
+		rz;
+};
+
 struct VehicleData
 {
 	int
@@ -88,6 +99,7 @@ struct VehicleData
 		nearestone
 		;
 	map<int, VehiclePlayerParams> PlayerParams;
+	map<int, AttachedObject> AttachObject;
 };
 
 vector<VehicleData>
@@ -138,4 +150,10 @@ int CountAllVehicles();
 bool IsDynamicVehicle(int vehicleid);
 void StreamVehicle(int dynamicid, VehicleData &vehicle);
 void UpdateTheCache(int exclude = -1);
-AMX *globalamx = nullptr;
+vector<AMX*> globalamx;
+/************* Streamer **********/
+bool IsValidDynamicObject(int objectid);
+int Streamer_SetIntData(int type, int id, int data, int value);
+int Streamer_GetIntData(int type, int id, int data);
+int AttachDynamicObjectToVehicle(int objectid, int vehicleid, float offsetx, float offsety, float offsetz, float rx, float ry, float rz);
+/*********************************/
