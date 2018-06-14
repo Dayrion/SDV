@@ -1,7 +1,7 @@
 using namespace std;
 #define HAVE_STDINT_H
 #define __STDC__ 1
-//#include <sampgdk\sdk.h>
+#include <sampgdk\interop.h>
 #include <sampgdk\core.h>
 #include <sampgdk\a_vehicles.h>
 #include <sampgdk\a_players.h>
@@ -87,6 +87,7 @@ AMX_NATIVE_INFO projectNatives[] =
 	{ "SetDVehicleParamsForPlayer", SetDVehicleParamsForPlayer },
 	{ "GetVehicleDynamicID", GetVehicleDynamicID },
 	{ "MoveVehicleDynamicID", MoveVehicleDynamicID },
+	{ "AttachDynamicObjectToDVehicle", AttachDynamicObjectToDVehicle },
 	{ 0, 0 }
 };
 
@@ -98,12 +99,17 @@ PLUGIN_EXPORT unsigned int PLUGIN_CALL Supports()
 
 PLUGIN_EXPORT int PLUGIN_CALL AmxLoad(AMX *amx)
 {
-	globalamx = amx;
+	globalamx.push_back(amx);
 	return amx_Register(amx, projectNatives, -1);
 }
 
 PLUGIN_EXPORT int PLUGIN_CALL AmxUnload(AMX *amx)
 {
+	vector<AMX*>::iterator it = find_if(globalamx.begin(), globalamx.end(), [amx](const AMX* item) { return amx == item; });
+	if (it != globalamx.end())
+	{
+		globalamx.erase(it);
+	}
 	return AMX_ERR_NONE;
 }
 
