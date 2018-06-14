@@ -39,7 +39,7 @@ static cell AMX_NATIVE_CALL CreateDynamicVehicle(AMX *amx, cell *params)
 		VehiclesData[vdynamicslot].World = virtualworID;
 		ResetVehicleData(vdynamicslot);
 		VehiclesData[vdynamicslot].InteriorID = interiorID;
-		VehiclesData[vdynamicslot].streamdis = vstreamdis;
+		VehiclesData[vdynamicslot].streamdis = powf(vstreamdis, 2);
 		VehicleCreated[vdynamicslot] = false;
 		VehiclesData[vdynamicslot].ShouldBeCreated = false;
 		WhoNearMe(vdynamicslot, VehiclesData[vdynamicslot], 1, true);
@@ -68,6 +68,7 @@ static cell AMX_NATIVE_CALL DestroyDynamicVehicle(AMX *amx, cell *params)
 			VehiclesData[dvid].vID = 0;
 			VehicleCreated[dvid] = false;
 		}
+		VehiclesData[dvid].AttachObject.clear();
 		VehiclesData[dvid].ShouldBeCreated = false;
 		VehiclesData[dvid].Model = -1;
 		if (lastputid == -1)
@@ -265,7 +266,7 @@ static cell AMX_NATIVE_CALL GetDVehicleDistanceFromPoint(AMX *amx, cell *params)
 			float d = sqrtf((powf(VehiclesData[vehicleid].vx - PX, 2) + powf(VehiclesData[vehicleid].vy - PY, 2) + powf(VehiclesData[vehicleid].vz - PZ, 2)));
 			return amx_ftoc(d);
 		}
-		//return 1;
+		return 1;
 	}
 	else
 	{
@@ -1237,11 +1238,63 @@ static cell AMX_NATIVE_CALL MoveVehicleDynamicID(AMX *amx, cell *params)
 	}
 }
 
+static cell AMX_NATIVE_CALL AttachDynamicObjectToDVehicle(AMX *amx, cell *params)
+{
+	CHECK_PARAMS(8, "AttachDynamicObjectToDVehicle");
+	int
+		objectid = params[1],
+		vehicleid = ( params[2] - 1 )
+		;
+	if (IsValidDynamicObject(objectid))
+	{
+		if (IsValidDynamicVehicleEx(vehicleid))
+		{
+			float
+				offsetx = amx_ctof(params[3]),
+				offsety = amx_ctof(params[4]),
+				offsetz = amx_ctof(params[5]),
+				rx = amx_ctof(params[6]),
+				ry = amx_ctof(params[7]),
+				rz = amx_ctof(params[8])
+				;
+			AttachedObject object;
+			object.offsetx = offsetx;
+			object.offsety = offsety;
+			object.offsetz = offsetz;
+			object.rx = rx;
+			object.ry = ry;
+			object.rz = rz;
+			VehiclesData[vehicleid].AttachObject[objectid] = object;
+			if (VehicleCreated[vehicleid])
+			{
+				return AttachDynamicObjectToVehicle(objectid, VehiclesData[vehicleid].vID, offsetx, offsety, offsetz, rx, ry, rz);
+			}
+			else
+			{				
+				// 0 objecttype, 48 Virtual World data
+				Streamer_SetIntData(0, objectid, 48, 6621);
+				// 3 Attached vehicle data
+				Streamer_SetIntData(0, objectid, 3, 65535);
+				return 1;
+			}
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	{
+		return 0;
+	}
+	return 1;
+}
+
 static cell AMX_NATIVE_CALL SetStreamDistance(AMX *amx, cell *params)
 {
 	CHECK_PARAMS(1, "SetStreamDistance");
 	float streamd = amx_ctof(params[1]);
-	streamdistance = streamd;
+	streamdistance = powf(streamd, 2);
 	return 1;
 }
 
@@ -1298,7 +1351,7 @@ void CheckTheCars(AMX *amx)
 			}
 		}
 		threadrunning = true;
-		thread vcheck([amx]
+		thread vcheck([]
 		{
 			int nj = VehiclesData.size();
 			if (nj)
@@ -1348,25 +1401,34 @@ int ExecuteFunction(AMX *amx, string fname, vector<cell> parameters, vector<floa
 
 int ExecuteFunction(string fname, vector<int> parameters, vector<float> fparameters)
 {
-	int idx;
-	if (!amx_FindPublic(globalamx, fname.c_str(), &idx))
+	int j = globalamx.size();
+	int retval = -1;
+	for (int z = 0; z < j; z++)
 	{
-		cell ret;
-		for (int i = fparameters.size() - 1; i > -1; i--)
+		int idx;
+		if (!amx_FindPublic(globalamx[z], fname.c_str(), &idx))
 		{
-			amx_Push(globalamx, amx_ftoc(fparameters[i]));
+			cell ret;
+			for (int i = fparameters.size() - 1; i > -1; i--)
+			{
+				amx_Push(globalamx[z], amx_ftoc(fparameters[i]));
+			}
+			for (int i = parameters.size() - 1; i > -1; i--)
+			{
+				amx_Push(globalamx[z], parameters[i]);
+			}
+			amx_Exec(globalamx[z], &ret, idx);
+			if (ret == 0)
+			{
+				return ret;
+			}
+			else
+			{
+				retval = ret;
+			}
 		}
-		for (int i = parameters.size() - 1; i > -1; i--)
-		{
-			amx_Push(globalamx, parameters[i]);
-		}
-		amx_Exec(globalamx, &ret, idx);
-		return ret;
 	}
-	else
-	{
-		return -2;
-	}
+	return retval;
 }
 
 int GetFreeVehicleSlot()
@@ -1487,7 +1549,6 @@ float AnyPlayerNearCar(int world, float vx, float vy, float vz, float streamdis,
 	int j = ConnectedIds.size();
 	if (j > 0)
 	{
-		streamdis *= streamdis;
 		float NearestDist = -1.0;
 		for (int i = 0; i < j; i++)
 		{
@@ -1521,7 +1582,6 @@ int GetFarestCarID(float nearestdis, bool mainthread)
 	int vidtoremove = -1;
 	vector<float> NearestPlayer(s, -1.0);
 	int z = ConnectedIds.size();
-	float tempstreamdis = streamdistance * streamdistance;
 	for (int i = 0; i < s/*(MAX_VEHICLES)*/; i++)
 	{
 		int vid = CreatedVehicles[i];
@@ -1537,7 +1597,7 @@ int GetFarestCarID(float nearestdis, bool mainthread)
 				break;
 			}
 			float Pdis = GetDistanceBetweenTwoPoints(PlayersData[pid].PX, PlayersData[pid].PY, PlayersData[pid].PZ, VehiclesData[vid].vx, VehiclesData[vid].vy, VehiclesData[vid].vz);
-			if (Pdis <= tempstreamdis)
+			if (Pdis <= streamdistance)
 			{
 				CanRemove[i] = false;
 				if (NearestPlayer[i] == -1.0)
@@ -1660,6 +1720,21 @@ void UnStreamDynamicVehicle(int dynamicid, int vehicleid)
 	/************** Health ************/
 	GetVehicleHealth(vehicleid, &health);
 	VehiclesData[dynamicid].Health = health;
+	/******** Attached Objects *******/
+	for (map<int, AttachedObject>::iterator it = VehiclesData[dynamicid].AttachObject.begin(); it != VehiclesData[dynamicid].AttachObject.end(); ++it)
+	{
+		int objectid = it->first;
+		if (!IsValidDynamicObject(objectid) || Streamer_GetIntData(0, objectid, 3) != vehicleid) // object is destroyed or something, not the vehicle we attached to before!
+		{
+			VehiclesData[dynamicid].AttachObject.erase(objectid);
+			continue;
+		}
+		else
+		{
+			Streamer_SetIntData(0, objectid, 48, 6621);
+			Streamer_SetIntData(0, objectid, 3, 65535);
+		}
+	}
 	VDynamicID[vehicleid] = -1;	
 	VehicleCreated[dynamicid] = false;
 	DestroyVehicle(vehicleid);
@@ -1796,11 +1871,29 @@ void StreamVehicle(int dynamicid, VehicleData &vehicle)
 	/****************Health********************/
 	SetVehicleHealth(vid, vehicle.Health);
 	/*************Player Params****************/
-	for (map<int, VehiclePlayerParams>::iterator it = vehicle.PlayerParams.begin(); it != vehicle.PlayerParams.end(); ++it) 
+	for (map<int, VehiclePlayerParams>::iterator it = vehicle.PlayerParams.begin(); it != vehicle.PlayerParams.end(); ++it)
 	{
-		 int playerid = it->first, objective = it->second.objective, doorslocked = it->second.doorslocked;
-		 SetVehicleParamsForPlayer(vid, playerid, objective, doorslocked);
-	}	
+		int playerid = it->first, objective = it->second.objective, doorslocked = it->second.doorslocked;
+		SetVehicleParamsForPlayer(vid, playerid, objective, doorslocked);
+	}
+	for (map<int, AttachedObject>::iterator it = vehicle.AttachObject.begin(); it != vehicle.AttachObject.end(); ++it)
+	{
+		int objectid = it->first;
+		if (!IsValidDynamicObject(objectid) || Streamer_GetIntData(0, objectid, 48) != 6621) // object is destroied or something, not the world we set before!
+		{
+			vehicle.AttachObject.erase(objectid);
+			continue;
+		}
+		float
+			offsetx = it->second.offsetx,
+			offsety = it->second.offsety,
+			offsetz = it->second.offsetz,
+			rx = it->second.rx,
+			ry = it->second.ry,
+			rz = it->second.rz
+			;
+		AttachDynamicObjectToVehicle(objectid, vid, offsetx, offsety, offsetz, rx, ry, rz);
+	}
 	VehiclesCount++;
 }
 
@@ -1836,5 +1929,61 @@ void UpdateTheCache(int exclude)
 			PlayersData[pid].PY = Y;
 			PlayersData[pid].PZ = Z;
 		}
+	}
+}
+
+bool IsValidDynamicObject(int objectid)
+{
+	AMX_NATIVE native = sampgdk::FindNative("IsValidDynamicObject");
+	if (native != nullptr)
+	{
+		return (sampgdk::InvokeNative(native, "i", objectid) == 1);
+	}
+	else
+	{
+		logprintf("You need streamer plugin to use this fucntion");
+		return false;
+	}
+}
+
+int Streamer_SetIntData(int type, int id, int data, int value)
+{
+	AMX_NATIVE native = sampgdk::FindNative("Streamer_SetIntData");
+	if (native != nullptr)
+	{
+		return sampgdk::InvokeNative(native, "iiii", type, id, data, value);
+	}
+	else
+	{
+		logprintf("You need streamer plugin to use this fucntion");
+		return -1;
+	}
+}
+
+int Streamer_GetIntData(int type, int id, int data)
+{
+	AMX_NATIVE native = sampgdk::FindNative("Streamer_GetIntData");
+	if(native != nullptr)
+	{
+		return sampgdk::InvokeNative(native, "iii", type, id, data);
+	}
+	else
+	{
+		logprintf("You need streamer plugin to use this fucntion");
+		return -1;
+	}
+}
+
+int AttachDynamicObjectToVehicle(int objectid, int vehicleid, float offsetx, float offsety, float offsetz, float rx, float ry, float rz)
+{
+	AMX_NATIVE native = sampgdk::FindNative("AttachDynamicObjectToVehicle");
+	if (native != nullptr)
+	{
+		return sampgdk::InvokeNative(native, "iiffffff", objectid, vehicleid, offsetx, offsety, offsetz, rx, ry, rz);
+	}
+	else
+	{
+		logprintf("You need streamer plugin to use this fucntion");
+		return -1;
 	}
 }
