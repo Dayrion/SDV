@@ -57,7 +57,7 @@ static cell AMX_NATIVE_CALL DestroyDynamicVehicle(AMX *amx, cell *params)
 	CHECK_PARAMS(1, "DestroyDynamicVehicle");
 	int dvid = (params[1]) - 1;
 	if (IsValidDynamicVehicleEx(dvid))
-	{		
+	{
 		if (VehicleCreated[dvid])
 		{
 			DestroyVehicle(VehiclesData[dvid].vID);
@@ -68,6 +68,7 @@ static cell AMX_NATIVE_CALL DestroyDynamicVehicle(AMX *amx, cell *params)
 			VehiclesData[dvid].vID = 0;
 			VehicleCreated[dvid] = false;
 		}
+		VehiclesData[dvid].plate = "";
 		VehiclesData[dvid].AttachObject.clear();
 		VehiclesData[dvid].ShouldBeCreated = false;
 		VehiclesData[dvid].Model = -1;
@@ -668,7 +669,7 @@ static cell AMX_NATIVE_CALL SetDynamicVehicleNumberPlate(AMX *amx, cell *params)
 	{	
 		int len = NULL;
 		cell *addr = NULL;
-		amx_GetAddr(amx, params[1], &addr);
+		amx_GetAddr(amx, params[2], &addr);
 		amx_StrLen(addr, &len);
 		if (len)
 		{
@@ -1536,8 +1537,7 @@ void ResetVehicleData(int dynamicid)
 	VehiclesData[dynamicid].Vbonnet = -1;
 	VehiclesData[dynamicid].Vboot = -1;
 	VehiclesData[dynamicid].Vobjective = -1;
-	VehiclesData[dynamicid].Paintjob = 3;
-	VehiclesData[dynamicid].plate = "";
+	VehiclesData[dynamicid].Paintjob = 3;	
 	for (int i = 0; i < 14; i++)
 		VehiclesData[dynamicid].Components[i] = 0;
 	VehiclesData[dynamicid].Health = 1000.0;
@@ -1893,6 +1893,15 @@ void StreamVehicle(int dynamicid, VehicleData &vehicle)
 			rz = it->second.rz
 			;
 		AttachDynamicObjectToVehicle(objectid, vid, offsetx, offsety, offsetz, rx, ry, rz);
+	}
+	if (vehicle.plate.length() > 0)
+	{
+		SetVehicleNumberPlate(vid, vehicle.plate.c_str());
+		SetVehicleToRespawn(vid);
+	}
+	else
+	{
+		SetVehicleNumberPlate(vid, "");
 	}
 	VehiclesCount++;
 }
