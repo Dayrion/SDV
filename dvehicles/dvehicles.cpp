@@ -1,11 +1,14 @@
 using namespace std;
 #define HAVE_STDINT_H
 #define __STDC__ 1
-#include <sampgdk\interop.h>
-#include <sampgdk\core.h>
-#include <sampgdk\a_vehicles.h>
-#include <sampgdk\a_players.h>
+
+#include <sampgdk\interop.h> 
+#include <sampgdk\core.h> 
+#include <sampgdk\a_vehicles.h> 
+#include <sampgdk\a_players.h> 
 //#include <SDK/plugin.h>
+
+#define SDV_VERSION "1.1.0"
 
 typedef void
 	(*logprintf_t)(char* format, ...)
@@ -30,11 +33,13 @@ PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData)
 {
 	pAMXFunctions = ppData[PLUGIN_DATA_AMX_EXPORTS];
 	logprintf = (logprintf_t)ppData[PLUGIN_DATA_LOGPRINTF];
+	logprintf("Semi-Dynamic vehicle plugin loaded - v%s", SDV_VERSION);
 	return sampgdk::Load(ppData);;
 }
 
 PLUGIN_EXPORT void PLUGIN_CALL Unload()
 {
+	logprintf("Semi-Dynamic vehicle plugin unloaded - v%s", SDV_VERSION);
 	sampgdk::Unload();
 }
 
@@ -88,6 +93,11 @@ AMX_NATIVE_INFO projectNatives[] =
 	{ "GetVehicleDynamicID", GetVehicleDynamicID },
 	{ "MoveVehicleDynamicID", MoveVehicleDynamicID },
 	{ "AttachDynamicObjectToDVehicle", AttachDynamicObjectToDVehicle },
+	{ "PopDynamicVehicleTires", PopDynamicVehicleTires },
+	{ "AttachTrailerToDynamicVehicle", AttachTrailerToDynamicVehicle },
+	{ "GetDynamicVehicleTrailer", GetDynamicVehicleTrailer },
+	{"IsTrailerAttachedToDynVehicle", IsTrailerAttachedToDynVehicle },
+	{"DetachTrailerFromDynamicVehicle", DetachTrailerFromDynamicVehicle },
 	{ 0, 0 }
 };
 
@@ -242,6 +252,20 @@ PLUGIN_EXPORT int PLUGIN_CALL OnPlayerWeaponShot(int playerid, int weaponid, int
 	}
 	else
 		return 1;
+}
+
+PLUGIN_EXPORT bool PLUGIN_CALL OnGameModeExit()
+{	
+	for (size_t i = 0; i != VehiclesData.size(); ++i)
+	{
+		if (!IsDynamicVehicle(i))
+			continue;
+
+		ResetAllVehicleData(i);
+	}
+
+	VehiclesData.clear();
+	return AMX_ERR_NONE;
 }
 
 //$(SolutionDir)$(Configuration)\

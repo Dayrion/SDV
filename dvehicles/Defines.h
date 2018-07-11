@@ -3,7 +3,6 @@
 #include <vector>
 #include <map>
 #include <string>
-#include <math.h>
 #include <thread>
 #include <algorithm>
 
@@ -73,7 +72,8 @@ struct VehicleData
 		Vdoors, 
 		Vbonnet, 
 		Vboot, 
-		Vobjective
+		Vobjective,
+		attached_trailer
 		;
 	float
 		defvx,

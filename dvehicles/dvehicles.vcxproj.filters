@@ -16,6 +16,9 @@
     <Filter Include="SDK">
       <UniqueIdentifier>{6dca8c2f-d1f8-4906-9024-5cc3be853e51}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\natives">
+      <UniqueIdentifier>{68f66e94-2af6-4f40-8db7-4c75db67d7a8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="dvehicles.def">
@@ -36,6 +39,9 @@
     </ClInclude>
     <ClInclude Include="Defines.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="natives\trailer.h">
+      <Filter>Source Files\natives</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

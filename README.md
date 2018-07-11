@@ -10,8 +10,70 @@ Documentation can be found on the [wiki](https://github.com/Jlalt/SDV/wiki).
 
 The latest binaries for Windows and Linux can be found on the [releases page](https://github.com/Jlalt/SDV/releases).
 
-## Credits
+## List of natives
+```pawn
+native CreateDynamicVehicle(modelid, Float:x, Float:y, Float:z, Float:rotation, color1, color2, respawn_delay, addsiren=0, virtualworld = 0, interior = 0, Float: streamdis = V_STREAM_DIS);
+native DestroyDynamicVehicle(vehicleid);
+native SetStreamDistance(Float:streamdistance);
+native SetVehicleCheckDelay(milliseconds);
+native GetDynamicVehiclePos(vehicleid, &Float:x, &Float:y, &Float:z);
+native SetDynamicVehiclePos(vehicleid, Float:x, Float:y, Float:z);
+native SetDynamicVehicleZAngle(vehicleid, Float:z_angle);
+native GetDynamicVehicleZAngle(vehicleid, &Float:z_angle);
+native GetDynamicVehicleRotationQuat(vehicleid, &Float:w, &Float:x, &Float:y, &Float:z);
+native Float:GetDVehicleDistanceFromPoint(vehicleid, Float:X, Float:Y, Float:Z);
+native SetDynamicVehicleParamsEx(vehicleid, engine, lights, alarm, doors, bonnet, boot, objective);
+native GetDynamicVehicleParamsEx(vehicleid, &engine, &lights, &alarm, &doors, &bonnet, &boot, &objective);
+native SetDynamicVehicleToRespawn(vehicleid);
+native LinkDynamicVehicleToInterior(vehicleid, interiorid);
+native GetDynamicVehicleInterior(vehicleid); // New
+native AddDynamicVehicleComponent(vehicleid, componentid);
+native RemoveDynamicVehicleComponent(vehicleid, componentid);
+native GetDVehicleComponentInSlot(vehicleid, slot); // There is 1 slot for each CARMODTYPE_*
+native ChangeDynamicVehicleColor(vehicleid, color1, color2);
+native GetDynamicVehicleColor(vehicleid, &color1, &color2); // New
+native ChangeDynamicVehiclePaintjob(vehicleid, paintjobid);
+native GetDynamicVehiclePaintjob(vehicleid);
+native SetDynamicVehicleHealth(vehicleid, Float:health);
+native GetDynamicVehicleHealth(vehicleid, &Float:health);
+native SetDynamicVehicleNumberPlate(vehicleid, numberplate[]);
+native GetDynamicVehicleNumberPlate(vehicleid, numberplate[], len = sizeof numberplate); // new
+native SetDynamicVehicleModel(vehicleid, model, bool:bultinrespawn = false); // New requires respawn
+native GetDynamicVehicleModel(vehicleid);
+native RepairDynamicVehicle(vehicleid); // Repairs the damage model and resets the health
+native GetDynamicVehicleVelocity(vehicleid, &Float:X, &Float:Y, &Float:Z);
+native SetDynamicVehicleVelocity(vehicleid, Float:X, Float:Y, Float:Z);
+native SetDVehicleAngularVelocity(vehicleid, Float:X, Float:Y, Float:Z);
+native GetDynamicVehicleDamageStatus(vehicleid, &panels, &doors, &lights, &tires);
+native UpdateDVehicleDamageStatus(vehicleid, panels, doors, lights, tires);
+native SetDynamicVehicleVirtualWorld(vehicleid, worldid);
+native GetDynamicVehicleVirtualWorld(vehicleid);
+native IsDynamicVehicleStreamedIn(vehicleid, forplayerid);
+native IsPlayerInDynamicVehicle(playerid, vehicleid);
+native PlayerSpectateDynamicVehicle(playerid, targetvehicleid, mode = SPECTATE_MODE_NORMAL);
+native IsValidDynamicVehicle(vehicleid);
+native PutPlayerInDynamicVehicle(playerid, vehicleid, seatid);
+native GetPlayerDynamicVehicleID(playerid);
+native GetPlayerSurfingDVehicleID(playerid);
+native UpdateTheVehicles();
+native SetDVehicleParamsForPlayer(vehicleid, playerid, objective, doorslocked);
+native GetVehicleDynamicID(vehicleid);
+native MoveVehicleDynamicID(fromid, toid = -1);
 
+#if defined _streamer_included
+	native AttachDynamicObjectToDVehicle(objectid, vehicleid, Float:offsetx, Float:offsety, Float:offsetz, Float:rx, Float:ry, Float:rz);
+#endif
+
+native PopDynamicVehicleTires(vehicleid, right_front = 0, left_front = 0, right_back = 0, left_back = 0); // New
+
+// Trailer
+native AttachTrailerToDynamicVehicle(trailerid, vehicleid);
+native DetachTrailerFromDynamicVehicle(vehicleid);
+native bool:IsTrailerAttachedToDynVehicle(vehicleid);
+native GetDynamicVehicleTrailer(vehicleid);
+```
+
+## Credits
 - Kurta999 for his c++ tutorials and YSF plugin. [ used ysf makefile to compile on linux ]
 - Streamer plugin, took this readme design from its readme file.
 - SA-MP Developers & Zeex for making samp, its SDK & GDK avaliable.

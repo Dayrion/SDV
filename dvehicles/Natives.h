@@ -1,6 +1,10 @@
 #pragma once
+
+#include "natives\trailer.h"
+
 static cell AMX_NATIVE_CALL CreateDynamicVehicle(AMX *amx, cell *params)
 {
+	logprintf("CDV is called");
 	CHECK_PARAMS(12, "CreateDynamicVehicle");
 	try
 	{
@@ -16,14 +20,14 @@ static cell AMX_NATIVE_CALL CreateDynamicVehicle(AMX *amx, cell *params)
 			virtualworID = params[10],
 			interiorID = params[11],
 			vdynamicslot = GetFreeVehicleSlot();
-		;
+
 		float
 			vvx = amx_ctof(params[2]),
 			vvy = amx_ctof(params[3]),
 			vvz = amx_ctof(params[4]),
 			vvr = amx_ctof(params[5]),
-			vstreamdis = amx_ctof(params[12])
-			;
+			vstreamdis = amx_ctof(params[12]);
+
 		VehiclesData[vdynamicslot].Model = vmodel;
 		VehiclesData[vdynamicslot].Color1 = color1;
 		VehiclesData[vdynamicslot].Color2 = color2;
@@ -973,6 +977,36 @@ static cell AMX_NATIVE_CALL GetDynamicVehicleDamageStatus(AMX *amx, cell *params
 	}
 }
 
+static cell AMX_NATIVE_CALL PopDynamicVehicleTires(AMX *amx, cell *params)
+{
+	CHECK_PARAMS(5, "PopDynamicVehicleTires");
+	int vehicleid = params[1] - 1,
+		right_front = params[2],
+		left_front = params[3],
+		right_back = params[4],
+		left_back = params[5];
+
+	if (!IsValidDynamicVehicleEx(vehicleid))
+		return 0;
+
+	int panels, doors, lights, tires;
+	GetVehicleDamageStatus(vehicleid, &panels, &doors, &lights, &tires);
+
+	if (VehicleCreated[vehicleid])
+		return UpdateVehicleDamageStatus(VehiclesData[vehicleid].vID, panels, doors, lights, left_front | (left_back << 1) | (right_front << 2) | (right_back << 3));
+	else
+	{
+		VehiclesData[vehicleid].Damage_panels = panels;
+		VehiclesData[vehicleid].Damage_doors = doors;
+		VehiclesData[vehicleid].Damage_lights = lights;
+		VehiclesData[vehicleid].Damage_tires = left_front | (left_back << 1) | (right_front << 2) | (right_back << 3);
+		return 1;
+	}
+	return 1;
+}
+
+
+
 static cell AMX_NATIVE_CALL UpdateDVehicleDamageStatus(AMX *amx, cell *params)
 {
 	CHECK_PARAMS(5, "UpdateDVehicleDamageStatus");
@@ -1519,23 +1553,46 @@ bool IsValidDynamicVehicleEx(int vehicleid)
 	return true;
 }
 
+void ResetAllVehicleData(int dynamicid)
+{
+	ResetVehicleData(dynamicid);
+	VehiclesData[dynamicid].Model = -1;
+	VehiclesData[dynamicid].Color1 =
+	VehiclesData[dynamicid].Color2 =
+	VehiclesData[dynamicid].Respawn_Delay =
+	VehiclesData[dynamicid].Addsiren =
+	VehiclesData[dynamicid].InteriorID = 
+	VehiclesData[dynamicid].World = 0;
+	VehiclesData[dynamicid].vx =
+	VehiclesData[dynamicid].vy =
+	VehiclesData[dynamicid].vz =
+	VehiclesData[dynamicid].defvx =
+	VehiclesData[dynamicid].defvy =
+	VehiclesData[dynamicid].defvz =
+	VehiclesData[dynamicid].v_zangle =
+	VehiclesData[dynamicid].streamdis = 0.0;
+	VehicleCreated[dynamicid] = false;
+	VehiclesData[dynamicid].ShouldBeCreated = false;
+}
+
 void ResetVehicleData(int dynamicid)
 {
-	VehiclesData[dynamicid].Damage_doors = 0;
-	VehiclesData[dynamicid].Damage_lights = 0;
-	VehiclesData[dynamicid].Damage_panels = 0;
+	VehiclesData[dynamicid].Damage_doors =
+	VehiclesData[dynamicid].Damage_lights =
+	VehiclesData[dynamicid].Damage_panels =
+	VehiclesData[dynamicid].Damage_tires =
+	VehiclesData[dynamicid].attached_trailer =
 	VehiclesData[dynamicid].Damage_tires = 0;
-	VehiclesData[dynamicid].Damage_tires = 0;
-	VehiclesData[dynamicid].Quatw = 0.5;
-	VehiclesData[dynamicid].Quatx = 0.5;
-	VehiclesData[dynamicid].Quaty = 0.5;
+	VehiclesData[dynamicid].Quatw =
+	VehiclesData[dynamicid].Quatx =
+	VehiclesData[dynamicid].Quaty =
 	VehiclesData[dynamicid].Quatz = 0.5;
-	VehiclesData[dynamicid].Vengine = -1;
-	VehiclesData[dynamicid].Vlights = -1;
-	VehiclesData[dynamicid].Valarm = -1;
-	VehiclesData[dynamicid].Vdoors = -1;
-	VehiclesData[dynamicid].Vbonnet = -1;
-	VehiclesData[dynamicid].Vboot = -1;
+	VehiclesData[dynamicid].Vengine =
+	VehiclesData[dynamicid].Vlights =
+	VehiclesData[dynamicid].Valarm =
+	VehiclesData[dynamicid].Vdoors =
+	VehiclesData[dynamicid].Vbonnet =
+	VehiclesData[dynamicid].Vboot =
 	VehiclesData[dynamicid].Vobjective = -1;
 	VehiclesData[dynamicid].Paintjob = 3;	
 	for (int i = 0; i < 14; i++)

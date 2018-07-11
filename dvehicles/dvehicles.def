@@ -19,3 +19,4 @@ EXPORTS
 	OnVehicleStreamOut
 	OnTrailerUpdate
 	OnPlayerWeaponShot
+	OnGameModeExit
