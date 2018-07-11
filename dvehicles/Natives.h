@@ -4,7 +4,6 @@
 
 static cell AMX_NATIVE_CALL CreateDynamicVehicle(AMX *amx, cell *params)
 {
-	logprintf("CDV is called");
 	CHECK_PARAMS(12, "CreateDynamicVehicle");
 	try
 	{

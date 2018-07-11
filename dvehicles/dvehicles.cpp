@@ -96,8 +96,8 @@ AMX_NATIVE_INFO projectNatives[] =
 	{ "PopDynamicVehicleTires", PopDynamicVehicleTires },
 	{ "AttachTrailerToDynamicVehicle", AttachTrailerToDynamicVehicle },
 	{ "GetDynamicVehicleTrailer", GetDynamicVehicleTrailer },
-	{"IsTrailerAttachedToDynVehicle", IsTrailerAttachedToDynVehicle },
-	{"DetachTrailerFromDynamicVehicle", DetachTrailerFromDynamicVehicle },
+	{ "IsTrailerAttachedToDynVehicle", IsTrailerAttachedToDynVehicle },
+	{ "DetachTrailerFromDynamicVehicle", DetachTrailerFromDynamicVehicle },
 	{ 0, 0 }
 };
 

@@ -10,14 +10,17 @@ static cell AMX_NATIVE_CALL AttachTrailerToDynamicVehicle(AMX *amx, cell *params
 	if (!IsValidDynamicVehicleEx(vehicleid) || !IsValidDynamicVehicleEx(trailerid))
 		return 0;
 
+	if (!VehicleCreated[vehicleid] || !VehicleCreated[trailerid])
+		return 0;
+
 	for (int i = 0; i < connected_players; i++)
 	{
 		if (!IsPlayerConnected(i))
 			continue;
-		// if (!IsVehicleStreamedIn(VehiclesData[vehicleid].vID, i) || !IsVehicleStreamedIn(VehiclesData[trailerid].vID, i)) // VehicleCreated[vehicleid] ?
-
-		if (!VehicleCreated[vehicleid] || !VehicleCreated[trailerid])
+		
+		if (!IsVehicleStreamedIn(VehiclesData[vehicleid].vID, i) || !IsVehicleStreamedIn(VehiclesData[trailerid].vID, i))
 			continue;
+
 		player_found = true;
 		break;
 	}

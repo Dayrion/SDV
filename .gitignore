@@ -1,0 +1,8 @@
+
+dvehicles.VC.db
+*.tlog
+*.pdb
+*.idb
+*.log
+*.opendb
+*.obj
