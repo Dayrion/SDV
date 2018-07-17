@@ -43,5 +43,8 @@
     <ClInclude Include="natives\trailer.h">
       <Filter>Source Files\natives</Filter>
     </ClInclude>
+    <ClInclude Include="natives\damage.h">
+      <Filter>Source Files\natives</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

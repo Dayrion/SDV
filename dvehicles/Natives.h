@@ -1,6 +1,7 @@
 #pragma once
 
 #include "natives\trailer.h"
+#include "natives\damage.h"
 
 static cell AMX_NATIVE_CALL CreateDynamicVehicle(AMX *amx, cell *params)
 {
@@ -73,6 +74,7 @@ static cell AMX_NATIVE_CALL DestroyDynamicVehicle(AMX *amx, cell *params)
 		}
 		VehiclesData[dvid].plate = "";
 		VehiclesData[dvid].AttachObject.clear();
+		VehiclesData[dvid].AttachLabel.clear();
 		VehiclesData[dvid].ShouldBeCreated = false;
 		VehiclesData[dvid].Model = -1;
 		if (lastputid == -1)
@@ -243,9 +245,9 @@ static cell AMX_NATIVE_CALL GetDynamicVehicleRotationQuat(AMX *amx, cell *params
 	}
 }
 
-static cell AMX_NATIVE_CALL GetDVehicleDistanceFromPoint(AMX *amx, cell *params)
+static cell AMX_NATIVE_CALL GetDynVehicleDistanceFromPoint(AMX *amx, cell *params)
 {
-	CHECK_PARAMS(4, "GetDVehicleDistanceFromPoint");
+	CHECK_PARAMS(4, "GetDynVehicleDistanceFromPoint");
 	int vehicleid = (params[1]) - 1;
 	if (IsValidDynamicVehicleEx(vehicleid))
 	{
@@ -622,6 +624,7 @@ static cell AMX_NATIVE_CALL SetDynamicVehicleHealth(AMX *amx, cell *params)
 		float health = amx_ctof(params[2]);
 		if (health < 0.0)
 			health = 0.0;
+		VehiclesData[vehicleid].max_health = health;
 		if (VehicleCreated[vehicleid])
 		{
 			return SetVehicleHealth(VehiclesData[vehicleid].vID, health);
@@ -770,9 +773,9 @@ static cell AMX_NATIVE_CALL GetDynamicVehicleModel(AMX *amx, cell *params)
 	}
 }
 
-static cell AMX_NATIVE_CALL GetDVehicleComponentInSlot(AMX *amx, cell *params)
+static cell AMX_NATIVE_CALL GetDynVehicleComponentInSlot(AMX *amx, cell *params)
 {
-	CHECK_PARAMS(2, "GetDVehicleComponentInSlot");
+	CHECK_PARAMS(2, "GetDynVehicleComponentInSlot");
 	int vehicleid = (params[1]) - 1;
 	if (IsValidDynamicVehicleEx(vehicleid))
 	{
@@ -806,7 +809,7 @@ static cell AMX_NATIVE_CALL RepairDynamicVehicle(AMX *amx, cell *params)
 		}
 		else
 		{
-			VehiclesData[vehicleid].Health = 1000.0;
+			VehiclesData[vehicleid].Health = VehiclesData[vehicleid].max_health;
 			VehiclesData[vehicleid].Damage_doors = 0;
 			VehiclesData[vehicleid].Damage_lights = 0;
 			VehiclesData[vehicleid].Damage_panels = 0;
@@ -976,66 +979,6 @@ static cell AMX_NATIVE_CALL GetDynamicVehicleDamageStatus(AMX *amx, cell *params
 	}
 }
 
-static cell AMX_NATIVE_CALL PopDynamicVehicleTires(AMX *amx, cell *params)
-{
-	CHECK_PARAMS(5, "PopDynamicVehicleTires");
-	int vehicleid = params[1] - 1,
-		right_front = params[2],
-		left_front = params[3],
-		right_back = params[4],
-		left_back = params[5];
-
-	if (!IsValidDynamicVehicleEx(vehicleid))
-		return 0;
-
-	int panels, doors, lights, tires;
-	GetVehicleDamageStatus(vehicleid, &panels, &doors, &lights, &tires);
-
-	if (VehicleCreated[vehicleid])
-		return UpdateVehicleDamageStatus(VehiclesData[vehicleid].vID, panels, doors, lights, left_front | (left_back << 1) | (right_front << 2) | (right_back << 3));
-	else
-	{
-		VehiclesData[vehicleid].Damage_panels = panels;
-		VehiclesData[vehicleid].Damage_doors = doors;
-		VehiclesData[vehicleid].Damage_lights = lights;
-		VehiclesData[vehicleid].Damage_tires = left_front | (left_back << 1) | (right_front << 2) | (right_back << 3);
-		return 1;
-	}
-	return 1;
-}
-
-
-
-static cell AMX_NATIVE_CALL UpdateDVehicleDamageStatus(AMX *amx, cell *params)
-{
-	CHECK_PARAMS(5, "UpdateDVehicleDamageStatus");
-	int vehicleid = (params[1]) - 1;
-	if (IsValidDynamicVehicleEx(vehicleid))
-	{
-		int
-			panels = params[2],
-			doors = params[3],
-			lights = params[4],
-			tires = params[5];
-		;
-		if (VehicleCreated[vehicleid])
-		{
-			return UpdateVehicleDamageStatus(VehiclesData[vehicleid].vID, panels, doors, lights, tires);
-		}
-		else
-		{
-			VehiclesData[vehicleid].Damage_panels = panels;
-			VehiclesData[vehicleid].Damage_doors = doors;
-			VehiclesData[vehicleid].Damage_lights = lights;
-			VehiclesData[vehicleid].Damage_tires = tires;
-			return 1;
-		}
-	}
-	else
-	{
-		return 0;
-	}
-}
 
 static cell AMX_NATIVE_CALL IsDynamicVehicleStreamedIn(AMX *amx, cell *params)
 {
@@ -1277,8 +1220,8 @@ static cell AMX_NATIVE_CALL AttachDynamicObjectToDVehicle(AMX *amx, cell *params
 	CHECK_PARAMS(8, "AttachDynamicObjectToDVehicle");
 	int
 		objectid = params[1],
-		vehicleid = ( params[2] - 1 )
-		;
+		vehicleid = (params[2] - 1);
+
 	if (IsValidDynamicObject(objectid))
 	{
 		if (IsValidDynamicVehicleEx(vehicleid))
@@ -1304,7 +1247,7 @@ static cell AMX_NATIVE_CALL AttachDynamicObjectToDVehicle(AMX *amx, cell *params
 				return AttachDynamicObjectToVehicle(objectid, VehiclesData[vehicleid].vID, offsetx, offsety, offsetz, rx, ry, rz);
 			}
 			else
-			{				
+			{
 				// 0 objecttype, 48 Virtual World data
 				Streamer_SetIntData(0, objectid, 48, 6621);
 				// 3 Attached vehicle data
@@ -1329,6 +1272,56 @@ static cell AMX_NATIVE_CALL SetStreamDistance(AMX *amx, cell *params)
 	CHECK_PARAMS(1, "SetStreamDistance");
 	float streamd = amx_ctof(params[1]);
 	streamdistance = powf(streamd, 2);
+	return 1;
+}
+
+static cell AMX_NATIVE_CALL Attach3DTextLabelToDynVehicle(AMX *amx, cell *params)
+{
+	CHECK_PARAMS(5, "Attach3DTextLabelToDynVehicle");
+	int
+		labelid = params[1],
+		vehicleid = (params[2] - 1)
+		;
+	if (IsValidDynamic3DTextLabel(labelid))
+	{
+		if (IsValidDynamicVehicleEx(vehicleid))
+		{
+			float
+				offsetx = amx_ctof(params[3]),
+				offsety = amx_ctof(params[4]),
+				offsetz = amx_ctof(params[5])
+				;
+			AttachedLabel label;
+			label.offsetx = offsetx;
+			label.offsety = offsety;
+			label.offsetz = offsetz;
+			VehiclesData[vehicleid].AttachLabel[labelid] = label;
+			if (VehicleCreated[vehicleid])
+			{
+				Streamer_SetIntData(5, labelid, 3, VehiclesData[vehicleid].vID);
+				Streamer_SetFloatData(5, labelid, 4, offsetx);
+				Streamer_SetFloatData(5, labelid, 5, offsety);
+				Streamer_SetFloatData(5, labelid, 6, offsetz);
+				return 1;
+			}
+			else
+			{
+				// 0 objecttype, 48 Virtual World data
+				Streamer_SetIntData(5, labelid, 48, 6621);
+				// 3 Attached vehicle data
+				Streamer_SetIntData(5, labelid, 3, 65535);
+				return 1;
+			}
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	{
+		return 0;
+	}
 	return 1;
 }
 
@@ -1596,7 +1589,11 @@ void ResetVehicleData(int dynamicid)
 	VehiclesData[dynamicid].Paintjob = 3;	
 	for (int i = 0; i < 14; i++)
 		VehiclesData[dynamicid].Components[i] = 0;
-	VehiclesData[dynamicid].Health = 1000.0;
+
+	if (VehiclesData[dynamicid].max_health < 0.0)
+		VehiclesData[dynamicid].max_health = 0.0;
+
+	VehiclesData[dynamicid].Health = VehiclesData[dynamicid].max_health;
 	VehiclesData[dynamicid].PlayerParams.clear();
 }
 
@@ -1791,6 +1788,21 @@ void UnStreamDynamicVehicle(int dynamicid, int vehicleid)
 			Streamer_SetIntData(0, objectid, 3, 65535);
 		}
 	}
+
+	for (map<int, AttachedLabel>::iterator it = VehiclesData[dynamicid].AttachLabel.begin(); it != VehiclesData[dynamicid].AttachLabel.end(); it)
+	{
+		int labelid = it->first;
+		if (!IsValidDynamic3DTextLabel(labelid) || Streamer_GetIntData(5, labelid, 3) != vehicleid) // object is destroyed or something, not the vehicle we attached to before!
+		{
+			VehiclesData[dynamicid].AttachLabel.erase(labelid);
+			continue;
+		}
+		else
+		{
+			Streamer_SetIntData(5, labelid, 48, 6621);
+			Streamer_SetIntData(5, labelid, 3, 65535);
+		}
+	}
 	VDynamicID[vehicleid] = -1;	
 	VehicleCreated[dynamicid] = false;
 	DestroyVehicle(vehicleid);
@@ -1950,6 +1962,26 @@ void StreamVehicle(int dynamicid, VehicleData &vehicle)
 			;
 		AttachDynamicObjectToVehicle(objectid, vid, offsetx, offsety, offsetz, rx, ry, rz);
 	}
+
+	for (map<int, AttachedLabel>::iterator it = vehicle.AttachLabel.begin(); it != vehicle.AttachLabel.end(); it)
+	{
+		int labelid = it->first;
+		if (!IsValidDynamic3DTextLabel(labelid) || Streamer_GetIntData(5, labelid, 48) != 6621) // object is destroied or something, not the world we set before!
+		{
+			vehicle.AttachLabel.erase(labelid);
+			continue;
+		}
+		float
+			offsetx = it->second.offsetx,
+			offsety = it->second.offsety,
+			offsetz = it->second.offsetz
+			;
+		Streamer_SetIntData(5, labelid, 3, vehicle.vID);
+		Streamer_SetFloatData(5, labelid, 4, offsetx);
+		Streamer_SetFloatData(5, labelid, 5, offsety);
+		Streamer_SetFloatData(5, labelid, 6, offsetz);
+	}
+
 	if (vehicle.plate.length() > 0)
 	{
 		SetVehicleNumberPlate(vid, vehicle.plate.c_str());
@@ -1960,6 +1992,34 @@ void StreamVehicle(int dynamicid, VehicleData &vehicle)
 		SetVehicleNumberPlate(vid, "");
 	}
 	VehiclesCount++;
+}
+
+bool IsValidDynamic3DTextLabel(int labelid)
+{
+	AMX_NATIVE native = sampgdk::FindNative("IsValidDynamic3DTextLabel");
+	if (native != nullptr)
+	{
+		return (sampgdk::InvokeNative(native, "i", labelid) == 1);
+	}
+	else
+	{
+		logprintf("You need streamer plugin to use this fucntion");
+		return false;
+	}
+}
+
+int Streamer_SetFloatData(int type, int id, int data, float value)
+{
+	AMX_NATIVE native = sampgdk::FindNative("Streamer_SetFloatData");
+	if (native != nullptr)
+	{
+		return sampgdk::InvokeNative(native, "iiif", type, id, data, value);
+	}
+	else
+	{
+		logprintf("You need streamer plugin to use this fucntion");
+		return -1;
+	}
 }
 
 void UpdateTheCache(int exclude)

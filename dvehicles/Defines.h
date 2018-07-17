@@ -49,6 +49,14 @@ struct AttachedObject
 		rz;
 };
 
+struct AttachedLabel
+{
+	float
+		offsetx,
+		offsety,
+		offsetz;
+};
+
 struct VehicleData
 {
 	int
@@ -88,6 +96,7 @@ struct VehicleData
 		Quaty,
 		Quatz,
 		Health,
+		max_health,
 		streamdis,
 		nearestplayer
 		;
@@ -100,6 +109,7 @@ struct VehicleData
 		;
 	map<int, VehiclePlayerParams> PlayerParams;
 	map<int, AttachedObject> AttachObject;
+	map<int, AttachedLabel> AttachLabel;
 };
 
 vector<VehicleData>
@@ -150,6 +160,8 @@ int CountAllVehicles();
 bool IsDynamicVehicle(int vehicleid);
 void StreamVehicle(int dynamicid, VehicleData &vehicle);
 void UpdateTheCache(int exclude = -1);
+bool IsValidDynamic3DTextLabel(int labelid);
+int Streamer_SetFloatData(int type, int id, int data, float value);
 vector<AMX*> globalamx;
 /************* Streamer **********/
 bool IsValidDynamicObject(int objectid);

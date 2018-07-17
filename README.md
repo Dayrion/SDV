@@ -71,6 +71,50 @@ native AttachTrailerToDynamicVehicle(trailerid, vehicleid);
 native DetachTrailerFromDynamicVehicle(vehicleid);
 native bool:IsTrailerAttachedToDynVehicle(vehicleid);
 native GetDynamicVehicleTrailer(vehicleid);
+
+native Attach3DTextLabelToDynVehicle(Text3D:id, vehicleid, Float:OffsetX, Float:OffsetY, Float:OffsetZ); // Label gotta be dynamic
+
+enum E_VEHICLE_DMG_TYPE
+{
+	DAMAGE_PANELS,
+	DAMAGE_DOORS,
+	DAMAGE_LIGHTS,
+	DAMAGE_TIRES
+};
+
+enum _:E_VEHICLE_DMG_STATE
+{
+	DOOR_HEALTHY_CLOSED,
+	DOOR_HEALTHY_OPENED,
+	DOOR_DAMAGED_CLOSED,
+	DOOR_DAMAGED_OPENED,
+	DOOR_MISSING,
+
+	TIRES_FIXED = 0,
+	TIRES_POPPED,
+
+	LIGHT_FIXED = 0,
+	LIGHT_DESTROYED,
+
+	PANEL_FIXED = 0,
+	PANEL_DESTROYED,
+};
+
+/*
+	Door:
+		right_front, left_front, right_back, left_back
+
+	Tires:
+		right_front, left_front, right_back, left_back
+
+	Light:
+		right_front, left_front, back
+
+	Panel:
+		front_left_panel, front_right_panel, rear_left_panel, rear_right_panel, windshield, front_bumper, rear_bumper
+*/
+native UpdateSpecificDynVehDmgStatus(vehicleid, E_VEHICLE_DMG_TYPE:damage_type, ...);
+
 ```
 
 ## Credits

@@ -6,3 +6,4 @@ dvehicles.VC.db
 *.log
 *.opendb
 *.obj
+.vs/dvehicles/v14/.suo

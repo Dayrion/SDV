@@ -18,7 +18,6 @@
 #if !defined IsValidVehicle
 	native IsValidVehicle(vehicleid);
 #endif
-
 native CreateDynamicVehicle(modelid, Float:x, Float:y, Float:z, Float:rotation, color1, color2, respawn_delay, addsiren=0, virtualworld = 0, interior = 0, Float: streamdis = V_STREAM_DIS);
 native DestroyDynamicVehicle(vehicleid);
 native SetStreamDistance(Float:streamdistance);
@@ -28,7 +27,7 @@ native SetDynamicVehiclePos(vehicleid, Float:x, Float:y, Float:z);
 native SetDynamicVehicleZAngle(vehicleid, Float:z_angle);
 native GetDynamicVehicleZAngle(vehicleid, &Float:z_angle);
 native GetDynamicVehicleRotationQuat(vehicleid, &Float:w, &Float:x, &Float:y, &Float:z);
-native Float:GetDVehicleDistanceFromPoint(vehicleid, Float:X, Float:Y, Float:Z);
+native Float:GetDynVehicleDistanceFromPoint(vehicleid, Float:X, Float:Y, Float:Z);
 native SetDynamicVehicleParamsEx(vehicleid, engine, lights, alarm, doors, bonnet, boot, objective);
 native GetDynamicVehicleParamsEx(vehicleid, &engine, &lights, &alarm, &doors, &bonnet, &boot, &objective);
 native SetDynamicVehicleToRespawn(vehicleid);
@@ -36,7 +35,7 @@ native LinkDynamicVehicleToInterior(vehicleid, interiorid);
 native GetDynamicVehicleInterior(vehicleid); // New
 native AddDynamicVehicleComponent(vehicleid, componentid);
 native RemoveDynamicVehicleComponent(vehicleid, componentid);
-native GetDVehicleComponentInSlot(vehicleid, slot); // There is 1 slot for each CARMODTYPE_*
+native GetDynVehicleComponentInSlot(vehicleid, slot); // There is 1 slot for each CARMODTYPE_*
 native ChangeDynamicVehicleColor(vehicleid, color1, color2);
 native GetDynamicVehicleColor(vehicleid, &color1, &color2); // New
 native ChangeDynamicVehiclePaintjob(vehicleid, paintjobid);
@@ -52,7 +51,7 @@ native GetDynamicVehicleVelocity(vehicleid, &Float:X, &Float:Y, &Float:Z);
 native SetDynamicVehicleVelocity(vehicleid, Float:X, Float:Y, Float:Z);
 native SetDVehicleAngularVelocity(vehicleid, Float:X, Float:Y, Float:Z);
 native GetDynamicVehicleDamageStatus(vehicleid, &panels, &doors, &lights, &tires);
-native UpdateDVehicleDamageStatus(vehicleid, panels, doors, lights, tires);
+native UpdateDynVehicleDamageStatus(vehicleid, panels, doors, lights, tires);
 native SetDynamicVehicleVirtualWorld(vehicleid, worldid);
 native GetDynamicVehicleVirtualWorld(vehicleid);
 native IsDynamicVehicleStreamedIn(vehicleid, forplayerid);
@@ -71,24 +70,64 @@ native MoveVehicleDynamicID(fromid, toid = -1);
 	native AttachDynamicObjectToDVehicle(objectid, vehicleid, Float:offsetx, Float:offsety, Float:offsetz, Float:rx, Float:ry, Float:rz);
 #endif
 
-native PopDynamicVehicleTires(vehicleid, right_front = 0, left_front = 0, right_back = 0, left_back = 0); // New
-
 // Trailer
 native AttachTrailerToDynamicVehicle(trailerid, vehicleid);
 native DetachTrailerFromDynamicVehicle(vehicleid);
 native bool:IsTrailerAttachedToDynVehicle(vehicleid);
 native GetDynamicVehicleTrailer(vehicleid);
+
+native Attach3DTextLabelToDynVehicle(Text3D:id, vehicleid, Float:OffsetX, Float:OffsetY, Float:OffsetZ); // Label gotta be dynamic
+
 /*
-
-
-native AttachPlayerObjectToVehicle(playerid, objectid, vehicleid, Float:fOffsetX, Float:fOffsetY, Float:fOffsetZ, Float:fRotX, Float:fRotY, Float:RotZ);
-native Attach3DTextLabelToVehicle(Text3D:id, vehicleid, Float:OffsetX, Float:OffsetY, Float:OffsetZ);
+native AttachPlayerObjectToDynVehicle(playerid, objectid, vehicleid, Float:fOffsetX, Float:fOffsetY, Float:fOffsetZ, Float:fRotX, Float:fRotY, Float:RotZ);
 native Update3DTextLabelText(Text3D:id, color, text[]);
 native PlayerText3D:CreatePlayer3DTextLabel(playerid, text[], color, Float:X, Float:Y, Float:Z, Float:DrawDistance, attachedplayer=INVALID_PLAYER_ID, attachedvehicle=INVALID_VEHICLE_ID, testLOS=0);
 native DeletePlayer3DTextLabel(playerid, PlayerText3D:id);
 native UpdatePlayer3DTextLabelText(playerid, PlayerText3D:id, color, text[]);
 ^ To be made
 */
+
+enum E_VEHICLE_DMG_TYPE
+{
+	DAMAGE_PANELS,
+	DAMAGE_DOORS,
+	DAMAGE_LIGHTS,
+	DAMAGE_TIRES
+};
+
+enum _:E_VEHICLE_DMG_STATE
+{
+	DOOR_HEALTHY_CLOSED,
+	DOOR_HEALTHY_OPENED,
+	DOOR_DAMAGED_CLOSED,
+	DOOR_DAMAGED_OPENED,
+	DOOR_MISSING,
+
+	TIRES_FIXED = 0,
+	TIRES_POPPED,
+
+	LIGHT_FIXED = 0,
+	LIGHT_DESTROYED,
+
+	PANEL_FIXED = 0,
+	PANEL_DESTROYED,
+};
+
+/*
+	Door:
+		right_front, left_front, right_back, left_back
+
+	Tires:
+		right_front, left_front, right_back, left_back
+
+	Light:
+		right_front, left_front, back
+
+	Panel:
+		front_left_panel, front_right_panel, rear_left_panel, rear_right_panel, windshield, front_bumper, rear_bumper
+*/
+native UpdateSpecificDynVehDmgStatus(vehicleid, E_VEHICLE_DMG_TYPE:damage_type, ...);
+
 /***************************Functions Replacer*********************************/
 
 #if defined RVFunc
@@ -408,7 +447,7 @@ native UpdatePlayer3DTextLabelText(playerid, PlayerText3D:id, color, text[]);
 #define GetVehicleZAngle GetDynamicVehicleZAngle
 #define SetVehicleZAngle SetDynamicVehicleZAngle
 #define GetVehicleRotationQuat GetDynamicVehicleRotationQuat
-#define GetVehicleDistanceFromPoint GetDVehicleDistanceFromPoint
+#define GetVehicleDistanceFromPoint GetDynVehicleDistanceFromPoint
 #define SetVehicleParamsForPlayer SetDVehicleParamsForPlayer
 #define SetVehicleParamsEx SetDynamicVehicleParamsEx
 #define GetVehicleParamsEx GetDynamicVehicleParamsEx
@@ -422,7 +461,7 @@ native UpdatePlayer3DTextLabelText(playerid, PlayerText3D:id, color, text[]);
 #define GetVehicleHealth GetDynamicVehicleHealth
 #define SetVehicleNumberPlate SetDynamicVehicleNumberPlate
 #define GetVehicleModel GetDynamicVehicleModel
-#define GetVehicleComponentInSlot GetDVehicleComponentInSlot
+#define GetVehicleComponentInSlot GetDynVehicleComponentInSlot
 #define RepairVehicle RepairDynamicVehicle
 #define GetVehicleVelocity GetDynamicVehicleVelocity
 #define SetVehicleVelocity SetDynamicVehicleVelocity
